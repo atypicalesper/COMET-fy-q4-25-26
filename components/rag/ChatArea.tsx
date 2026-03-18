@@ -15,21 +15,24 @@ const SUGGESTIONS = [
 const STORAGE_KEY = "rag_chat_history";
 
 export default function ChatArea() {
-  const [messages, setMessages] = useState<Message[]>(() => {
-    if (typeof window === "undefined") return [];
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      return saved
-        ? JSON.parse(saved).filter((m: Message) => !m.isLoading)
-        : [];
-    } catch {
-      return [];
-    }
-  });
+  const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [strategy, setStrategy] = useState("similarity");
   const bottomRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<(() => void) | null>(null);
+
+  // Load history from localStorage after mount to avoid hydration mismatch
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved).filter((m: Message) => !m.isLoading);
+        if (parsed.length > 0) setMessages(parsed);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "instant" });
