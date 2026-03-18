@@ -1,7 +1,11 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { marked } from "marked";
+import DOMPurify from "dompurify";
 import type { Message } from "./types";
+
+marked.use({ breaks: true, gfm: true });
 
 function cleanSourcePath(src: string) {
   return src.replace(/^.*\/data\/documents\//, "").replace(/^.*[/\\]/, "");
@@ -9,10 +13,6 @@ function cleanSourcePath(src: string) {
 
 function parseMarkdown(content: string): string {
   if (typeof window === "undefined") return "";
-  // Dynamic import to avoid SSR issues
-  const { marked } = require("marked");
-  const DOMPurify = require("dompurify");
-  marked.use({ breaks: true, gfm: true });
   return DOMPurify.sanitize(marked.parse(content) as string);
 }
 
@@ -22,11 +22,10 @@ export default function ChatMessage({ message }: { message: Message }) {
   const [copied, setCopied] = useState(false);
   const [html, setHtml] = useState("");
 
-  useMemo(() => {
+  useEffect(() => {
     if (!isUser && !isLoading && content) {
       setHtml(parseMarkdown(content));
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [content, isUser, isLoading]);
 
   useEffect(() => {
