@@ -1,11 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { AuthProvider, useAuth } from "@/components/rag/AuthContext";
 import Sidebar from "@/components/rag/Sidebar";
 import ChatArea from "@/components/rag/ChatArea";
+import LoginModal from "@/components/rag/LoginModal";
 
-export default function RagPage() {
+function RagApp() {
+  const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  if (!user) return <LoginModal />;
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#0a0a0f]">
@@ -16,11 +21,16 @@ export default function RagPage() {
       >
         {sidebarOpen ? "✕" : "☰"}
       </button>
-      <Sidebar
-        mobileOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-      />
-      <ChatArea />
+      <Sidebar mobileOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <ChatArea userId={user.id} />
     </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <AuthProvider>
+      <RagApp />
+    </AuthProvider>
   );
 }

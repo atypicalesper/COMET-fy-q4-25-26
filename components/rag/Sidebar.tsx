@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { getStats } from "@/lib/ragApi";
 import type { StatsResult } from "@/lib/ragApi";
+import { useAuth } from "./AuthContext";
 import FileUpload from "./FileUpload";
 
 export default function Sidebar({
@@ -12,6 +13,7 @@ export default function Sidebar({
   mobileOpen: boolean;
   onClose: () => void;
 }) {
+  const { user, logout } = useAuth();
   const [stats, setStats] = useState<StatsResult | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -48,14 +50,23 @@ export default function Sidebar({
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
-        <div className="px-5 py-5 border-b border-[#2a2a3a] flex items-center gap-3">
-          <div>
-            <h1 className="text-xl font-bold text-[#e8e8f0]">
-              RAG <span className="text-[#6c5ce7]">Chat</span>
-            </h1>
-            <p className="text-xs text-[#555570] mt-0.5">
-              Ask questions about your documents
-            </p>
+        <div className="px-5 py-4 border-b border-[#2a2a3a]">
+          <h1 className="text-xl font-bold text-[#e8e8f0] mb-3">
+            RAG <span className="text-[#6c5ce7]">Chat</span>
+          </h1>
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-[#e8e8f0] truncate">
+                {user?.name}
+              </p>
+              <p className="text-xs text-[#555570] truncate">{user?.email}</p>
+            </div>
+            <button
+              onClick={logout}
+              className="shrink-0 text-xs text-[#555570] border border-[#2a2a3a] px-2.5 py-1.5 rounded-lg hover:text-[#ff6b6b] hover:border-[rgba(255,107,107,0.4)] transition-colors"
+            >
+              Sign out
+            </button>
           </div>
         </div>
 

@@ -12,19 +12,18 @@ const SUGGESTIONS = [
   "What services are offered?",
 ];
 
-const STORAGE_KEY = "rag_chat_history";
-
-export default function ChatArea() {
+export default function ChatArea({ userId }: { userId: string }) {
+  const storageKey = `rag_chat_${userId}`;
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [strategy, setStrategy] = useState("similarity");
   const bottomRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<(() => void) | null>(null);
 
-  // Load history from localStorage after mount to avoid hydration mismatch
+  // Load this user's history from localStorage after mount
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(storageKey);
       if (saved) {
         const parsed = JSON.parse(saved).filter((m: Message) => !m.isLoading);
         if (parsed.length > 0) setMessages(parsed);
@@ -32,7 +31,8 @@ export default function ChatArea() {
     } catch {
       /* ignore */
     }
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "instant" });
@@ -41,13 +41,13 @@ export default function ChatArea() {
   useEffect(() => {
     const timer = setTimeout(() => {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+        localStorage.setItem(storageKey, JSON.stringify(messages));
       } catch {
         /* ignore */
       }
     }, 500);
     return () => clearTimeout(timer);
-  }, [messages]);
+  }, [messages, storageKey]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });

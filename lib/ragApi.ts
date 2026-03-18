@@ -1,6 +1,20 @@
 const BASE =
   process.env.NEXT_PUBLIC_RAG_API_URL ?? "http://localhost:8000";
 
+// ── Auth token ─────────────────────────────────────────────
+
+let authToken: string | null = null;
+
+export function setToken(token: string | null) {
+  authToken = token;
+}
+
+function authHeaders(): Record<string, string> {
+  return authToken ? { Authorization: `Bearer ${authToken}` } : {};
+}
+
+// ── Helpers ────────────────────────────────────────────────
+
 async function checkOk(res: Response, label: string): Promise<Response> {
   if (!res.ok) {
     let detail = "";
@@ -14,6 +28,52 @@ async function checkOk(res: Response, label: string): Promise<Response> {
   return res;
 }
 
+// ── Auth API ───────────────────────────────────────────────
+
+export interface AuthUser {
+  id: string;
+  name: string;
+  email: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: AuthUser;
+}
+
+export async function registerUser(
+  name: string,
+  email: string,
+  password: string
+): Promise<AuthResponse> {
+  const res = await checkOk(
+    await fetch(`${BASE}/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, password }),
+    }),
+    "Register"
+  );
+  return res.json();
+}
+
+export async function loginUser(
+  email: string,
+  password: string
+): Promise<AuthResponse> {
+  const res = await checkOk(
+    await fetch(`${BASE}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    }),
+    "Login"
+  );
+  return res.json();
+}
+
+// ── RAG API ────────────────────────────────────────────────
+
 export interface UploadResult {
   file: string;
   status: "success" | "error" | "skipped";
@@ -21,20 +81,11 @@ export interface UploadResult {
   chunks_added?: number;
 }
 
-export interface QueryResult {
-  answer: string;
-  sources: Source[];
-  model: string;
-  latency_seconds: number;
-  cached?: boolean;
-}
-
 export interface Source {
   index: number;
   source: string;
   file_name: string;
   page: string | number;
-  chunk_preview: string;
 }
 
 export interface StatsResult {
@@ -55,7 +106,11 @@ export async function uploadFiles(
   const formData = new FormData();
   for (const file of files) formData.append("files", file);
   const res = await checkOk(
-    await fetch(`${BASE}/upload`, { method: "POST", body: formData }),
+    await fetch(`${BASE}/upload`, {
+      method: "POST",
+      headers: authHeaders(),
+      body: formData,
+    }),
     "Upload"
   );
   return res.json();
@@ -72,7 +127,10 @@ export function queryRAGStream(
     const res = await checkOk(
       await fetch(`${BASE}/query/stream`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeaders(),
+        },
         body: JSON.stringify({ question, strategy }),
         signal: controller.signal,
       }),
@@ -94,7 +152,12 @@ export function queryRAGStream(
         const data = line.slice(6);
         if (data === "[DONE]") return;
         if (data.startsWith("[ERROR]")) throw new Error(data.slice(8));
-        onToken(data);
+        // Tokens are JSON-encoded to safely carry newlines and special chars
+        try {
+          onToken(JSON.parse(data));
+        } catch {
+          onToken(data);
+        }
       }
     }
   })();
@@ -103,6 +166,9 @@ export function queryRAGStream(
 }
 
 export async function getStats(): Promise<StatsResult> {
-  const res = await checkOk(await fetch(`${BASE}/stats`), "Stats");
+  const res = await checkOk(
+    await fetch(`${BASE}/stats`, { headers: authHeaders() }),
+    "Stats"
+  );
   return res.json();
 }
