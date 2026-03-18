@@ -17,6 +17,12 @@ export function Nav() {
           <Link href="/about" className="hover:text-zinc-900 transition-colors">
             about
           </Link>
+          <Link
+            href="/rag"
+            className="text-violet-500 hover:text-violet-700 transition-colors font-medium"
+          >
+            rag chat →
+          </Link>
         </nav>
       </div>
     </header>
