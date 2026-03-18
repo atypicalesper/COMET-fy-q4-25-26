@@ -1,42 +1,26 @@
-import Link from "next/link";
-import { getAllPosts } from "@/lib/posts";
-import { PostCard } from "@/components/PostCard";
+"use client";
 
-export default function Home() {
-  const posts = getAllPosts();
-  const recentPosts = posts.slice(0, 3);
+import { useState } from "react";
+import Sidebar from "@/components/rag/Sidebar";
+import ChatArea from "@/components/rag/ChatArea";
+
+export default function RagPage() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div>
-      <section className="mb-16">
-        <h1 className="text-2xl font-semibold text-zinc-900 mb-3">
-          Tarun Singh
-        </h1>
-        <p className="text-zinc-500 leading-relaxed max-w-lg">
-          Writing about what I&apos;m learning. Currently going deep on Next.js
-          — App Router, server components, data fetching, and building things
-          that actually work in production.
-        </p>
-      </section>
-
-      <section>
-        <div className="flex items-baseline justify-between mb-2">
-          <h2 className="text-sm font-medium text-zinc-400 uppercase tracking-wider">
-            Recent posts
-          </h2>
-          <Link
-            href="/devlog"
-            className="text-sm text-zinc-400 hover:text-zinc-900 transition-colors"
-          >
-            all posts →
-          </Link>
-        </div>
-        <div>
-          {recentPosts.map((post) => (
-            <PostCard key={post.slug} post={post} />
-          ))}
-        </div>
-      </section>
+    <div className="flex h-screen w-screen overflow-hidden bg-[#0a0a0f]">
+      <button
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        aria-label="Toggle sidebar"
+        className="fixed top-3 left-3 z-[100] md:hidden bg-[#12121a] border border-[#2a2a3a] text-[#e8e8f0] w-10 h-10 rounded-lg text-xl flex items-center justify-center cursor-pointer"
+      >
+        {sidebarOpen ? "✕" : "☰"}
+      </button>
+      <Sidebar
+        mobileOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
+      <ChatArea />
     </div>
   );
 }
