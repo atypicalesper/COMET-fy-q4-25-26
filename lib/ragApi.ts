@@ -9,6 +9,12 @@ export function setToken(token: string | null) {
   authToken = token;
 }
 
+// Called by AuthContext to clear session when token is rejected (401)
+let onUnauthorized: (() => void) | null = null;
+export function setUnauthorizedHandler(fn: () => void) {
+  onUnauthorized = fn;
+}
+
 function authHeaders(): Record<string, string> {
   return authToken ? { Authorization: `Bearer ${authToken}` } : {};
 }
@@ -17,9 +23,12 @@ function authHeaders(): Record<string, string> {
 
 async function checkOk(res: Response, label: string): Promise<Response> {
   if (!res.ok) {
+    if (res.status === 401) {
+      onUnauthorized?.();
+    }
     let detail = "";
     try {
-      detail = (await res.json()).error;
+      detail = (await res.json()).error ?? (await res.json()).msg;
     } catch {
       /* no json body */
     }

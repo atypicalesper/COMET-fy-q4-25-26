@@ -7,7 +7,7 @@ import {
   useEffect,
   ReactNode,
 } from "react";
-import { setToken } from "@/lib/ragApi";
+import { setToken, setUnauthorizedHandler } from "@/lib/ragApi";
 
 export interface AuthUser {
   id: string;
@@ -38,6 +38,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem("rag_user");
       }
     }
+    // Auto-logout when backend returns 401 (expired/invalid token)
+    setUnauthorizedHandler(() => {
+      localStorage.removeItem("rag_token");
+      localStorage.removeItem("rag_user");
+      setToken(null);
+      setUser(null);
+    });
   }, []);
 
   const login = (token: string, newUser: AuthUser) => {
