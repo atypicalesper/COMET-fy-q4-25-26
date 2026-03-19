@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { queryRAGStream } from "@/lib/ragApi";
-import type { Message } from "./types";
+import type { Message } from "@/lib/types";
 import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
 
@@ -12,7 +12,7 @@ const SUGGESTIONS = [
   "What services are offered?",
 ];
 
-export default function ChatArea({ userId }: { userId: string }) {
+export default function ChatArea({ userId, collection }: { userId: string; collection?: string }) {
   const storageKey = `rag_chat_${userId}`;
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
@@ -66,15 +66,25 @@ export default function ChatArea({ userId }: { userId: string }) {
       setMessages((prev) => [...prev, userMsg, aiMsg]);
       setLoading(true);
 
-      const { promise, abort } = queryRAGStream(text, strategy, (token) => {
-        setMessages((prev) =>
-          prev.map((m) =>
-            m.id === streamId
-              ? { ...m, content: m.content + token, isLoading: false }
-              : m
-          )
-        );
-      });
+      const { promise, abort } = queryRAGStream(
+        text,
+        strategy,
+        (token) => {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === streamId
+                ? { ...m, content: m.content + token, isLoading: false }
+                : m
+            )
+          );
+        },
+        (sources) => {
+          setMessages((prev) =>
+            prev.map((m) => (m.id === streamId ? { ...m, sources } : m))
+          );
+        },
+        collection || undefined
+      );
       abortRef.current = abort;
 
       try {
@@ -109,21 +119,21 @@ export default function ChatArea({ userId }: { userId: string }) {
         abortRef.current = null;
       }
     },
-    [strategy]
+    [strategy, collection]
   );
 
   const clearChat = () => setMessages([]);
 
   return (
     <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-      <div className="px-6 py-4 border-b border-[#2a2a3a] bg-[#12121a] flex items-center justify-between gap-3 md:px-6 pl-[72px] md:pl-6">
+      <div className="px-6 py-4 border-b border-[#2a2a3a] bg-[#12121a] flex items-center justify-between gap-3 md:px-6 pl-18 md:pl-6">
         <h2 className="text-[15px] font-semibold text-[#e8e8f0]">Chat</h2>
         <div className="flex items-center gap-2">
           <select
             value={strategy}
             onChange={(e) => setStrategy(e.target.value)}
             aria-label="Search strategy"
-            className="bg-[#0a0a0f] text-[#8888a0] border border-[#2a2a3a] rounded-lg px-2 py-[5px] text-xs cursor-pointer outline-none focus-visible:border-[#6c5ce7]"
+            className="bg-[#0a0a0f] text-[#8888a0] border border-[#2a2a3a] rounded-lg px-2 py-1.25 text-xs cursor-pointer outline-none focus-visible:border-[#6c5ce7]"
           >
             <option value="similarity">Similarity</option>
             <option value="mmr">MMR (diverse)</option>
@@ -132,7 +142,7 @@ export default function ChatArea({ userId }: { userId: string }) {
             <button
               onClick={clearChat}
               aria-label="Clear chat"
-              className="border border-[#2a2a3a] text-[#8888a0] px-3 py-[5px] rounded-lg text-xs cursor-pointer transition-all hover:border-[#555570] hover:text-[#e8e8f0]"
+              className="border border-[#2a2a3a] text-[#8888a0] px-3 py-1.25 rounded-lg text-xs cursor-pointer transition-all hover:border-[#555570] hover:text-[#e8e8f0]"
             >
               Clear
             </button>
@@ -145,7 +155,7 @@ export default function ChatArea({ userId }: { userId: string }) {
           <p className="text-lg font-semibold text-[#8888a0] mb-2">
             Ask anything about your documents
           </p>
-          <p className="text-sm text-[#555570] max-w-[300px] leading-relaxed">
+          <p className="text-sm text-[#555570] max-w-75 leading-relaxed">
             Upload files in the sidebar, then ask questions. Answers are
             grounded in your uploaded content.
           </p>

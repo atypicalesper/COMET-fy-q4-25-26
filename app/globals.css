@@ -60,6 +60,24 @@
   margin: 0.8em 0;
 }
 
+/* Inline [Source N] badges rendered inside markdown */
+.rag-src-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(108, 92, 231, 0.2);
+  color: #6c5ce7;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 2px 5px;
+  border-radius: 4px;
+  vertical-align: super;
+  margin: 0 1px;
+  font-style: normal;
+  letter-spacing: 0.02em;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;

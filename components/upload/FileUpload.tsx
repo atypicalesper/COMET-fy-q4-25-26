@@ -24,10 +24,13 @@ function validateFile(file: File): string | null {
 
 export default function FileUpload({
   onUploadComplete,
+  collection,
 }: {
   onUploadComplete?: () => void;
+  collection?: string;
 }) {
   const [files, setFiles] = useState<File[]>([]);
+  const [labels, setLabels] = useState<Record<string, string>>({});
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [status, setStatus] = useState<{
@@ -71,7 +74,7 @@ export default function FileUpload({
     setUploading(true);
     setStatus(null);
     try {
-      const result = await uploadFiles(files);
+      const result = await uploadFiles(files, { labels, collection });
       const successCount = result.results.filter(
         (r: UploadResult) => r.status === "success"
       ).length;
@@ -80,6 +83,7 @@ export default function FileUpload({
         message: `${successCount} file${successCount !== 1 ? "s" : ""} uploaded and indexed`,
       });
       setFiles([]);
+      setLabels({});
       onUploadComplete?.();
     } catch (err: unknown) {
       setStatus({
@@ -139,31 +143,45 @@ export default function FileUpload({
         <ul
           role="list"
           aria-label="Selected files"
-          className="mt-3 flex flex-col gap-1.5"
+          className="mt-3 flex flex-col gap-2"
         >
           {files.map((file, i) => (
             <li
               key={file.name + i}
               role="listitem"
-              className="flex items-center justify-between px-3 py-2 bg-[#0a0a0f] border border-[#2a2a3a] rounded-lg text-[13px]"
+              className="px-3 py-2.5 bg-[#0a0a0f] border border-[#2a2a3a] rounded-lg text-[13px] flex flex-col gap-2"
             >
-              <div className="min-w-0 flex-1">
-                <span className="text-[#e8e8f0] font-medium block truncate max-w-[160px]">
-                  {file.name}
-                </span>
-                <span className="text-[#555570] text-xs">
-                  {formatSize(file.size)}
-                </span>
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <span className="text-[#e8e8f0] font-medium block truncate max-w-40">
+                    {file.name}
+                  </span>
+                  <span className="text-[#555570] text-xs">{formatSize(file.size)}</span>
+                </div>
+                <button
+                  onClick={() => {
+                    setFiles((prev) => prev.filter((_, j) => j !== i));
+                    setLabels((prev) => {
+                      const next = { ...prev };
+                      delete next[file.name];
+                      return next;
+                    });
+                  }}
+                  aria-label={`Remove ${file.name}`}
+                  className="shrink-0 bg-transparent border-none text-[#555570] cursor-pointer text-lg leading-none px-1.5 py-0.5 rounded transition-all hover:text-[#ff6b6b] hover:bg-[rgba(255,107,107,0.1)]"
+                >
+                  ×
+                </button>
               </div>
-              <button
-                onClick={() =>
-                  setFiles((prev) => prev.filter((_, j) => j !== i))
+              <input
+                type="text"
+                placeholder="Label this document (optional)"
+                value={labels[file.name] ?? ""}
+                onChange={(e) =>
+                  setLabels((prev) => ({ ...prev, [file.name]: e.target.value }))
                 }
-                aria-label={`Remove ${file.name}`}
-                className="bg-transparent border-none text-[#555570] cursor-pointer text-lg leading-none px-1.5 py-0.5 rounded transition-all hover:text-[#ff6b6b] hover:bg-[rgba(255,107,107,0.1)]"
-              >
-                ×
-              </button>
+                className="w-full bg-[#12121a] border border-[#2a2a3a] rounded-md px-2.5 py-1.5 text-xs text-[#c0c0d8] placeholder-[#444460] outline-none focus:border-[#6c5ce7] transition-colors"
+              />
             </li>
           ))}
         </ul>

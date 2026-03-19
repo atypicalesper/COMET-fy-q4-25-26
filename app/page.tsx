@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { AuthProvider, useAuth } from "@/components/rag/AuthContext";
-import Sidebar from "@/components/rag/Sidebar";
-import ChatArea from "@/components/rag/ChatArea";
-import LoginModal from "@/components/rag/LoginModal";
+import { AuthProvider, useAuth } from "@/components/auth/AuthContext";
+import Sidebar from "@/components/layout/Sidebar";
+import ChatArea from "@/components/chat/ChatArea";
+import LoginModal from "@/components/auth/LoginModal";
 
 function RagApp() {
   const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [collection, setCollection] = useState("");
 
   if (!user) return <LoginModal />;
 
@@ -21,8 +22,13 @@ function RagApp() {
       >
         {sidebarOpen ? "✕" : "☰"}
       </button>
-      <Sidebar mobileOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <ChatArea userId={user.id} />
+      <Sidebar
+        mobileOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        collection={collection}
+        onCollectionChange={setCollection}
+      />
+      <ChatArea userId={user.id} collection={collection} />
     </div>
   );
 }

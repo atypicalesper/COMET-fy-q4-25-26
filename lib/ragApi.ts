@@ -28,7 +28,8 @@ async function checkOk(res: Response, label: string): Promise<Response> {
     }
     let detail = "";
     try {
-      detail = (await res.json()).error ?? (await res.json()).msg;
+      const body = await res.json();
+      detail = body.error ?? body.msg;
     } catch {
       /* no json body */
     }
@@ -90,12 +91,7 @@ export interface UploadResult {
   chunks_added?: number;
 }
 
-export interface Source {
-  index: number;
-  source: string;
-  file_name: string;
-  page: string | number;
-}
+export type { Source } from "@/lib/types";
 
 export interface StatsResult {
   vectorstore: {
@@ -110,10 +106,14 @@ export interface StatsResult {
 }
 
 export async function uploadFiles(
-  files: File[]
+  files: File[],
+  options?: { labels?: Record<string, string>; collection?: string }
 ): Promise<{ results: UploadResult[] }> {
   const formData = new FormData();
   for (const file of files) formData.append("files", file);
+  if (options?.labels && Object.keys(options.labels).length > 0)
+    formData.append("labels", JSON.stringify(options.labels));
+  if (options?.collection) formData.append("collection", options.collection);
   const res = await checkOk(
     await fetch(`${BASE}/upload`, {
       method: "POST",
@@ -128,7 +128,9 @@ export async function uploadFiles(
 export function queryRAGStream(
   question: string,
   strategy = "similarity",
-  onToken: (token: string) => void
+  onToken: (token: string) => void,
+  onSources?: (sources: Source[]) => void,
+  collection?: string
 ): { promise: Promise<void>; abort: () => void } {
   const controller = new AbortController();
 
@@ -140,7 +142,7 @@ export function queryRAGStream(
           "Content-Type": "application/json",
           ...authHeaders(),
         },
-        body: JSON.stringify({ question, strategy }),
+        body: JSON.stringify({ question, strategy, ...(collection ? { collection } : {}) }),
         signal: controller.signal,
       }),
       "Stream query"
@@ -161,9 +163,18 @@ export function queryRAGStream(
         const data = line.slice(6);
         if (data === "[DONE]") return;
         if (data.startsWith("[ERROR]")) throw new Error(data.slice(8));
-        // Tokens are JSON-encoded to safely carry newlines and special chars
+        // Each SSE data value is JSON-encoded: objects are metadata, strings are tokens
         try {
-          onToken(JSON.parse(data));
+          const parsed = JSON.parse(data);
+          if (
+            typeof parsed === "object" &&
+            parsed !== null &&
+            "__sources" in parsed
+          ) {
+            onSources?.(parsed.__sources);
+          } else {
+            onToken(parsed as string);
+          }
         } catch {
           onToken(data);
         }

@@ -3,15 +3,19 @@
 import { useState, useEffect } from "react";
 import { getStats } from "@/lib/ragApi";
 import type { StatsResult } from "@/lib/ragApi";
-import { useAuth } from "./AuthContext";
-import FileUpload from "./FileUpload";
+import { useAuth } from "@/components/auth/AuthContext";
+import FileUpload from "@/components/upload/FileUpload";
 
 export default function Sidebar({
   mobileOpen,
   onClose,
+  collection,
+  onCollectionChange,
 }: {
   mobileOpen: boolean;
   onClose: () => void;
+  collection: string;
+  onCollectionChange: (c: string) => void;
 }) {
   const { user, logout } = useAuth();
   const [stats, setStats] = useState<StatsResult | null>(null);
@@ -75,7 +79,7 @@ export default function Sidebar({
             <h3 className="text-[11px] font-semibold uppercase tracking-[1px] text-[#555570] mb-3">
               Upload Documents
             </h3>
-            <FileUpload onUploadComplete={fetchStats} />
+            <FileUpload onUploadComplete={fetchStats} collection={collection} />
           </div>
 
           <div>
@@ -132,6 +136,23 @@ export default function Sidebar({
                   : "Backend offline"}
               </div>
             </div>
+          </div>
+
+          <div>
+            <h3 className="text-[11px] font-semibold uppercase tracking-[1px] text-[#555570] mb-3">
+              Database / Collection
+            </h3>
+            <p className="text-xs text-[#555570] mb-2 leading-relaxed">
+              Route uploads and queries to a specific collection. Leave blank for the default store.
+            </p>
+            <input
+              type="text"
+              value={collection}
+              onChange={(e) => onCollectionChange(e.target.value)}
+              placeholder="default"
+              aria-label="Active collection"
+              className="w-full bg-[#0a0a0f] border border-[#2a2a3a] rounded-lg px-3 py-2 text-sm text-[#c0c0d8] placeholder-[#444460] outline-none focus:border-[#6c5ce7] transition-colors"
+            />
           </div>
         </div>
       </aside>
