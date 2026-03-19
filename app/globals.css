@@ -12,53 +12,79 @@
 }
 
 /* RAG Chat markdown prose */
-.prose-rag { line-height: 1.7; }
-.prose-rag p { margin: 0 0 0.75em; }
+.prose-rag { line-height: 1.75; color: #d8d8ec; }
+.prose-rag p { margin: 0 0 0.8em; }
 .prose-rag p:last-child { margin-bottom: 0; }
-.prose-rag ul { padding-left: 1.4em; margin: 0.5em 0; list-style-type: disc; }
-.prose-rag ol { padding-left: 1.4em; margin: 0.5em 0; list-style-type: decimal; }
-.prose-rag li { margin-bottom: 0.4em; }
+.prose-rag ul { padding-left: 1.5em; margin: 0.5em 0 0.8em; list-style-type: disc; }
+.prose-rag ol { padding-left: 1.5em; margin: 0.5em 0 0.8em; list-style-type: decimal; }
+.prose-rag li { margin-bottom: 0.35em; }
 .prose-rag li > p { margin: 0; }
 .prose-rag code {
-  background: rgba(255,255,255,0.08);
-  padding: 2px 6px;
+  background: rgba(108,92,231,0.12);
+  color: #b8a8f8;
+  padding: 1px 6px;
   border-radius: 4px;
-  font-size: 12px;
-  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.85em;
+  font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
 }
 .prose-rag pre {
-  background: rgba(0,0,0,0.35);
-  border: 1px solid #2a2a3a;
-  border-radius: 8px;
-  padding: 12px 14px;
+  background: #0a0a12;
+  border: 1px solid #1e1e30;
+  border-radius: 10px;
+  padding: 14px 16px;
   overflow-x: auto;
-  margin: 0.75em 0;
+  margin: 0.9em 0;
 }
-.prose-rag pre code { background: none; padding: 0; font-size: 13px; }
+.prose-rag pre code { background: none; padding: 0; font-size: 0.82em; color: #c0c8e8; }
 .prose-rag strong { color: #e8e8f0; font-weight: 600; }
-.prose-rag em { color: #b8b8d0; font-style: italic; }
+.prose-rag em { color: #a8a8c8; font-style: italic; }
 .prose-rag h1, .prose-rag h2, .prose-rag h3, .prose-rag h4 {
-  margin: 0.9em 0 0.4em;
+  margin: 1.1em 0 0.45em;
   font-weight: 600;
   color: #e8e8f0;
   line-height: 1.3;
 }
-.prose-rag h1 { font-size: 1.1em; }
-.prose-rag h2 { font-size: 1em; }
-.prose-rag h3 { font-size: 0.95em; }
-.prose-rag a { color: #6c5ce7; text-decoration: underline; }
+.prose-rag h1 { font-size: 1.15em; border-bottom: 1px solid #2a2a3a; padding-bottom: 0.35em; }
+.prose-rag h2 { font-size: 1.05em; }
+.prose-rag h3 { font-size: 0.97em; color: #b8b8d8; }
+.prose-rag a { color: #8b7cf8; text-decoration: underline; text-underline-offset: 2px; }
+.prose-rag a:hover { color: #a89cf8; }
 .prose-rag blockquote {
-  border-left: 3px solid #6c5ce7;
-  margin: 0.6em 0;
-  padding: 4px 12px;
-  color: #8888a0;
+  border-left: 2px solid #6c5ce7;
+  margin: 0.7em 0;
+  padding: 6px 14px;
+  background: rgba(108,92,231,0.06);
+  border-radius: 0 6px 6px 0;
+  color: #8888a8;
   font-style: italic;
 }
 .prose-rag hr {
   border: none;
-  border-top: 1px solid #2a2a3a;
-  margin: 0.8em 0;
+  border-top: 1px solid #1e1e30;
+  margin: 1em 0;
 }
+/* Tables */
+.prose-rag table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.9em 0;
+  font-size: 0.88em;
+}
+.prose-rag th {
+  background: rgba(108,92,231,0.1);
+  color: #c0c0d8;
+  font-weight: 600;
+  text-align: left;
+  padding: 7px 12px;
+  border: 1px solid #2a2a3a;
+}
+.prose-rag td {
+  padding: 6px 12px;
+  border: 1px solid #1e1e2e;
+  color: #9898b8;
+  vertical-align: top;
+}
+.prose-rag tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
 
 /* Inline [Source N] badges rendered inside markdown */
 .rag-src-badge {
